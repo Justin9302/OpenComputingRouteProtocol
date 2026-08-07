@@ -62,6 +62,8 @@ This is a Protocol for Distributed AI Computing Router.
 | [RFC-003]()     | **零信任安全模型**         | **Draft** |
 | [RFC-004]()     | **算电协同与电网数据接入** | **Draft** |
 
+> 🗺️ **项目路线图**：[ROADMAP.md](ROADMAP.md) — 查看项目推进计划与里程碑
+
 
 
 ## 🚀 快速开始
@@ -92,7 +94,7 @@ curl -X POST http://localhost:8080/v1/tasks \
 3. **实现参考代码** ：用任何语言实现 Hub/Server 模拟器。
 4. **接入真实电网数据** ：如澳洲 AEMO、欧洲 ENTSO-E、北美 PJM。
 
-**请阅读** [CONTRIBUTING.md]() 与 [CODE_OF_CONDUCT.md]()。
+**请阅读** [CONTRIBUTING.md]()、[CODE_OF_CONDUCT.md]() 与 [ROADMAP.md]()。
 
 ## 📄 许可证
 
