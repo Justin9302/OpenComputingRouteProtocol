@@ -87,10 +87,10 @@ curl -X POST http://localhost:8080/v1/tasks \
 
 **我们遵循 ****"协议先行，代码渐进"** 的原则。欢迎通过以下方式参与：
 
-1. **提出 RFC 提案** **：在 **`docs/` 下新建 RFC 文档，提交 PR。
-2. **完善协议规范** **：修订 **`spec/` 下的 JSON Schema 或 YAML 定义。
-3. **实现参考代码** **：用任何语言实现 Hub/Server 模拟器。**
-4. **接入真实电网数据** **：如澳洲 AEMO、欧洲 ENTSO-E、北美 PJM。**
+1. **提出 RFC 提案** ：在 **`docs/` 下新建 RFC 文档，提交 PR。
+2. **完善协议规范** ：修订 **`spec/` 下的 JSON Schema 或 YAML 定义。
+3. **实现参考代码** ：用任何语言实现 Hub/Server 模拟器。**
+4. **接入真实电网数据** ：如澳洲 AEMO、欧洲 ENTSO-E、北美 PJM。**
 
 **请阅读 **[CONTRIBUTING.md]() 与 [CODE_OF_CONDUCT.md]()。
 
