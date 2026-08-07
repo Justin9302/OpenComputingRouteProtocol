@@ -1,0 +1,111 @@
+# SLA Tiering 分级定义
+# 参考 RFC-002: 时效分级调度模型
+# 时间窗口从实时底座到 24 小时不等，配套逐级下调的价格机制
+
+version: 1.0
+
+description: >
+  SLA 分级定义表。任务按延迟容忍度划分为 T0-T10 共 11 个等级，
+  实现"用时间换成本、用时间换绿电"的算电协同调度。
+
+tiers:
+  - id: T0
+    label: 实时底座
+    window: "<1s"
+    max_completion_seconds: 1
+    interruptible: false
+    typical_scenarios: [工业控制, 安全拦截]
+    energy_strategy: 基载电力 + 本地储能兜底
+
+  - id: T1
+    label: 1 分钟
+    window: "1min"
+    max_completion_seconds: 60
+    interruptible: false
+    typical_scenarios: [实时推理, 语音交互]
+    energy_strategy: 优先本地节点，容忍峰值电价
+
+  - id: T2
+    label: 5 分钟
+    window: "5min"
+    max_completion_seconds: 300
+    interruptible: false
+    typical_scenarios: [交互式 Agent, 实时客服]
+    energy_strategy: 本地/边缘节点，可短暂排队
+
+  - id: T3
+    label: 10 分钟
+    window: "10min"
+    max_completion_seconds: 600
+    interruptible: true
+    typical_scenarios: [轻量批处理, 文档摘要]
+    energy_strategy: 可跨机房调度，避开尖峰
+
+  - id: T4
+    label: 30 分钟
+    window: "30min"
+    max_completion_seconds: 1800
+    interruptible: true
+    typical_scenarios: [知识库更新, 中等推理]
+    energy_strategy: 可跨区域调度，等待电价回落
+
+  - id: T5
+    label: 1 小时
+    window: "1h"
+    max_completion_seconds: 3600
+    interruptible: true
+    typical_scenarios: [日报表生成, 数据清洗]
+    energy_strategy: 匹配平段电价
+
+  - id: T6
+    label: 2 小时
+    window: "2h"
+    max_completion_seconds: 7200
+    interruptible: true
+    typical_scenarios: [模型微调, 批量翻译]
+    energy_strategy: 优先绿电充裕时段
+
+  - id: T7
+    label: 4 小时
+    window: "4h"
+    max_completion_seconds: 14400
+    interruptible: true
+    typical_scenarios: [数据预处理, 向量库构建]
+    energy_strategy: 可被高优任务抢占，支持断点续传
+
+  - id: T8
+    label: 8 小时
+    window: "8h"
+    max_completion_seconds: 28800
+    interruptible: true
+    typical_scenarios: [大规模训练, 科学计算]
+    energy_strategy: 匹配夜间低谷电价/风电高峰
+
+  - id: T9
+    label: 16 小时
+    window: "16h"
+    max_completion_seconds: 57600
+    interruptible: true
+    typical_scenarios: [超大规模离线训练]
+    energy_strategy: 仅在绿电过剩/负电价时段执行
+
+  - id: T10
+    label: 24 小时
+    window: "24h"
+    max_completion_seconds: 86400
+    interruptible: true
+    typical_scenarios: [归档, 冷数据挖掘]
+    energy_strategy: 纯粹"等电来"，作为虚拟负荷池
+
+defaults:
+  # 未声明 sla_tier 的任务默认视为 T1（1 分钟），按最高优先级调度
+  default_tier: T1
+  # 默认不允许中断
+  default_interruptible: false
+
+future_extensions:
+  # 未来可扩展 T11-T20 支持更长周期（如 72h、168h）的科研任务
+  - id: T11
+    window: "72h"
+  - id: T12
+    window: "168h"

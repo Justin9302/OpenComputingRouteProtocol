@@ -1,0 +1,90 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://open-compute-router.org/spec/compute-intent.schema.json",
+  "title": "ComputeIntent",
+  "description": "MCP 算力意图描述规范，用于用户层向 Hub 层声明计算任务需求。",
+  "type": "object",
+  "required": ["task_id", "compute_intent"],
+  "properties": {
+    "task_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "全局唯一任务标识"
+    },
+    "mcp_context": {
+      "type": "string",
+      "description": "关联的 MCP 会话上下文 ID"
+    },
+    "compute_intent": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["inference", "training", "fine_tuning", "batch_processing", "data_cleaning"],
+          "description": "计算任务类型"
+        },
+        "min_vram_gb": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "最小显存需求（GB）"
+        },
+        "preferred_arch": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["gpu_nvidia", "gpu_amd", "npu_huawei", "tpu", "asic", "cpu"]
+          },
+          "description": "偏好的硬件架构列表"
+        },
+        "security_level": {
+          "type": "string",
+          "enum": ["public", "internal", "private_only", "confidential"],
+          "description": "安全隔离级别"
+        }
+      }
+    },
+    "sla_scheduling": {
+      "type": "object",
+      "properties": {
+        "tier": {
+          "type": "string",
+          "pattern": "^T([0-9]|10)$",
+          "description": "SLA 分级（T0-T10）"
+        },
+        "max_completion_time": {
+          "type": "string",
+          "pattern": "^\\d+(s|m|h)$",
+          "description": "最大完成时间（如 30s, 5m, 2h）"
+        },
+        "price_ceiling": {
+          "type": "number",
+          "minimum": 0,
+          "description": "愿意支付的最高单价（货币单位/任务）"
+        },
+        "interruptible": {
+          "type": "boolean",
+          "default": false,
+          "description": "是否允许被高优任务抢占"
+        },
+        "energy_preference": {
+          "type": "object",
+          "properties": {
+            "prefer_green": {
+              "type": "boolean",
+              "description": "优先使用绿电"
+            },
+            "avoid_peak_price": {
+              "type": "boolean",
+              "description": "自动避开电价高峰"
+            },
+            "use_local_battery": {
+              "type": "boolean",
+              "description": "是否强制使用本地储能兜底"
+            }
+          }
+        }
+      }
+    }
+  }
+}

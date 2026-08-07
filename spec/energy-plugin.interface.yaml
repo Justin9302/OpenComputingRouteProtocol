@@ -1,0 +1,115 @@
+# 能源插件接口定义 (Energy Plugin Interface)
+# 参考 RFC-004: 算电协同与电网数据接入
+# 用于 Hub 层对接电网开放数据（AEMO、PJM、ENTSO-E 等）
+
+version: 1.0
+
+info:
+  title: Energy Plugin Interface
+  description: >
+    定义 Hub 与电网开放数据之间的标准插件接口。
+    任何能源市场数据源（AEMO、PJM、ENTSO-E 等）
+    通过实现本接口即可被 Hub 消费，无需修改调度核心逻辑。
+
+# 插件元数据
+plugin_meta:
+  type: object
+  required: [plugin_id, provider, market, version]
+  properties:
+    plugin_id:
+      type: string
+      description: 插件唯一标识
+      example: aemo-nem
+    provider:
+      type: string
+      description: 数据提供方
+      example: AEMO
+    market:
+      type: string
+      description: 电力市场标识
+      example: NEM
+    version:
+      type: string
+      description: 插件版本
+      example: 1.0.0
+
+# 电价数据接口
+price_data:
+  type: object
+  description: Hub 拉取电价预测的核心接口
+  required: [region, timestamp, price_per_mwh]
+  properties:
+    region:
+      type: string
+      description: 区域/节点标识
+      example: NSW1
+    timestamp:
+      type: string
+      format: date-time
+      description: 价格生效时间
+    price_per_mwh:
+      type: number
+      description: 价格（本币/MWh），可为负值（负电价）
+    forecast_window:
+      type: integer
+      description: 预测窗口（小时）
+      example: 24
+    currency:
+      type: string
+      default: AUD
+      description: 币种
+
+# 绿电比例接口
+green_ratio:
+  type: object
+  description: 区域绿电（可再生）发电比例
+  required: [region, timestamp, ratio]
+  properties:
+    region:
+      type: string
+      description: 区域标识
+    timestamp:
+      type: string
+      format: date-time
+    ratio:
+      type: number
+      minimum: 0
+      maximum: 1
+      description: 绿电占比（0~1）
+
+# 需求响应接口
+demand_response:
+  type: object
+  description: 需求响应事件（用于可转移负荷参与调峰）
+  required: [event_id, start_time, end_time, incentive]
+  properties:
+    event_id:
+      type: string
+      description: 需求响应事件 ID
+    start_time:
+      type: string
+      format: date-time
+    end_time:
+      type: string
+      format: date-time
+    incentive:
+      type: number
+      description: 响应补贴（本币/MWh）
+    target_load_reduction:
+      type: number
+      description: 目标削减负荷（MW）
+
+# 标准适配器
+adapters:
+  - id: aemo
+    provider: AEMO
+    market: NEM
+    url: https://www.aemo.com.au
+  - id: pjm
+    provider: PJM
+    market: PJM
+    url: https://www.pjm.com
+  - id: entsoe
+    provider: ENTSO-E
+    market: EU
+    url: https://www.entsoe.eu

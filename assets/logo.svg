@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- 背景圆角方块 -->
+  <rect width="256" height="256" rx="48" fill="#0f172a"/>
+
+  <!-- 三个算力节点（用户 / Hub / Server） -->
+  <circle cx="128" cy="64" r="24" fill="#38bdf8"/>
+  <circle cx="128" cy="128" r="28" fill="#34d399"/>
+  <circle cx="128" cy="196" r="24" fill="#fbbf24"/>
+
+  <!-- 节点间路由链路 -->
+  <line x1="128" y1="88" x2="128" y2="100" stroke="#64748b" stroke-width="6" stroke-linecap="round"/>
+  <line x1="128" y1="156" x2="128" y2="172" stroke="#64748b" stroke-width="6" stroke-linecap="round"/>
+
+  <!-- 路由流向箭头（体现路由分发） -->
+  <polygon points="121,100 135,100 128,112" fill="#64748b"/>
+  <polygon points="121,172 135,172 128,160" fill="#64748b"/>
+
+  <!-- 绿叶元素（体现绿色能源协同） -->
+  <path d="M 128 128 C 108 108 84 104 76 92 C 88 86 108 92 128 112 Z" fill="#34d399" opacity="0.6"/>
+
+  <!-- 环形轨道（体现持续路由） -->
+  <circle cx="128" cy="128" r="88" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="8 10"/>
+</svg>
