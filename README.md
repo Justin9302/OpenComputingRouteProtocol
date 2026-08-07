@@ -102,4 +102,4 @@ curl -X POST http://localhost:8080/v1/tasks \
 
 * **感谢**[Model Context Protocol (MCP)](https://modelcontextprotocol.io/) 提供的意图描述灵感。
 * **感谢全球开源社区对中立基础设施的坚守。**
-* **我一个人的能力有限，不做超出自己能力范围的事情。欢迎所有心情梦想的人共建美好未来！**
+* **我一个人的能力有限，欢迎所有心情梦想的人共建美好未来！**
