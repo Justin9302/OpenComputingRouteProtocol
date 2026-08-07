@@ -100,5 +100,5 @@ curl -X POST http://localhost:8080/v1/tasks \
 
 ## 🙏 致谢
 
-* **感谢 **[Model Context Protocol (MCP)](https://modelcontextprotocol.io/) 提供的意图描述灵感。
+* **感谢**[Model Context Protocol (MCP)](https://modelcontextprotocol.io/) 提供的意图描述灵感。
 * **感谢全球开源社区对中立基础设施的坚守。**
