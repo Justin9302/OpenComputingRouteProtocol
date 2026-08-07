@@ -1,0 +1,71 @@
+name: spec-lint
+
+on:
+  push:
+    paths:
+      - 'spec/**'
+      - 'docs/**'
+  pull_request:
+    paths:
+      - 'spec/**'
+      - 'docs/**'
+  workflow_dispatch:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install validation tools
+        run: |
+          pip install pyyaml jsonschema
+
+      - name: Validate YAML syntax (spec/)
+        run: |
+          python - <<'EOF'
+          import glob, sys, yaml
+          files = glob.glob('spec/*.yaml')
+          if not files:
+              print('No YAML files found')
+              sys.exit(0)
+          for f in files:
+              with open(f) as fh:
+                  yaml.safe_load(fh)
+              print(f'OK: {f}')
+          EOF
+
+      - name: Validate JSON syntax (spec/)
+        run: |
+          python - <<'EOF'
+          import glob, json, sys
+          files = glob.glob('spec/*.json')
+          if not files:
+              print('No JSON files found')
+              sys.exit(0)
+          for f in files:
+              with open(f) as fh:
+                  json.load(fh)
+              print(f'OK: {f}')
+          EOF
+
+      - name: Validate compute-intent schema against example
+        run: |
+          python - <<'EOF'
+          import json, jsonschema
+          with open('spec/compute-intent.schema.json') as fh:
+              schema = json.load(fh)
+          # 最小合法意图示例
+          valid_example = {
+              "task_id": "task-001",
+              "compute_intent": {"type": "inference"}
+          }
+          jsonschema.validate(instance=valid_example, schema=schema)
+          print('Schema validation OK')
+          EOF
