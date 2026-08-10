@@ -84,6 +84,20 @@ cd examples
 python resource-table-mock.py
 ```
 
+运行 30 秒 Demo（提交任务→调度→负电价时段执行→展示省钱）
+
+```
+cd examples
+python demo-30s.py
+```
+
+模拟算力节点上线（供给侧"在线证据"）
+
+```
+cd examples
+python server-node-mock.py
+```
+
 提交一个MCP算力意图
 
 ```

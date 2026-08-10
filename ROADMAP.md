@@ -56,14 +56,14 @@ Open Compute Router (OCR) 定义一套轻量级、可演进的**分布式算力�
 
 **目标**：让 Demo 从"演示"变成"证据"
 
-| 任务                                                             | 产出                   |
-| ---------------------------------------------------------------- | ---------------------- |
-| 编写`examples/energy-price-mock.py`                            | 模拟 AEMO 真实电价曲线 |
-| 用 AEMO 真实历史数据替换 mock 电价                               | 模拟器基于真实数据演示 |
-| 编写`examples/server-node-mock.py`                             | 模拟算力节点上报状态   |
-| 编写`examples/resource-table-mock.py`（设备级资源表模拟）       | 验证 RFC-005：资源表维护 + 被动接收 + 调度决策 |
-| 编写 30 秒 Demo 脚本（提交任务→调度→负电价时段执行→展示省钱） | 可录屏的 pitch 素材    |
-| 固化本路线图                                                     | 项目治理资产           |
+| 任务                                                             | 产出                   | 状态 |
+| ---------------------------------------------------------------- | ---------------------- | ---- |
+| 编写`examples/energy-price-mock.py`                            | 模拟 AEMO 真实电价曲线 | ✅   |
+| 用 AEMO 真实历史数据替换 mock 电价                               | 模拟器基于真实数据演示 | ⏳ Phase 1 |
+| 编写`examples/server-node-mock.py`                             | 模拟算力节点上报状态   | ✅   |
+| 编写`examples/resource-table-mock.py`（设备级资源表模拟）       | 验证 RFC-005：资源表维护 + 被动接收 + 调度决策 | ✅   |
+| 编写 30 秒 Demo 脚本（提交任务→调度→负电价时段执行→展示省钱） | 可录屏的 pitch 素材    | ✅   |
+| 固化本路线图                                                     | 项目治理资产           | ✅   |
 
 **北极星指标**：Demo 视频能说服 1 个陌生人"想试一试"
 
@@ -157,6 +157,10 @@ Open Compute Router (OCR) 定义一套轻量级、可演进的**分布式算力�
 - RFC-001~005 协议文档（Draft）
 - spec/ 四份规范文件（compute-intent / sla-tiers / energy-plugin / resource-table）
 - examples/hub-simulator.py（Hub 模拟器）
+- examples/energy-price-mock.py（AEMO 电价模拟，含负电价）
+- examples/server-node-mock.py（算力节点状态上报）
+- examples/resource-table-mock.py（RFC-005 设备级自治验证）
+- examples/demo-30s.py（30 秒可录屏 Demo：负电价时段跑训练）
 - 社区治理文档（CONTRIBUTING / CODE_OF_CONDUCT / SECURITY / CHANGELOG）
 - GitHub 模板与 CI（Issue / PR 模板、spec-lint 工作流）
 
