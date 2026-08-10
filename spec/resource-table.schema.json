@@ -1,0 +1,108 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://open-compute-router.org/spec/resource-table.schema.json",
+  "title": "ResourceTable",
+  "description": "设备级资源表（Resource Table）规范。每台 Hub/Switch/Router 设备独立维护，类似路由表（Routing Table），用于记录算力与能源资源状态并驱动调度决策。参考 RFC-005。",
+  "type": "object",
+  "required": ["device_id", "version", "entries"],
+  "properties": {
+    "device_id": {
+      "type": "string",
+      "description": "维护本资源表的设备标识（SPIFFE ID 或设备唯一 ID）",
+      "example": "spiffe://open-compute-router.org/hub/edge-01"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "资源表版本号，用于并发更新与收敛检测（类比路由表 sequence number）"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "本表最近一次更新时间"
+    },
+    "entries": {
+      "type": "array",
+      "description": "资源表项列表（类比路由表的路由条目）",
+      "items": {
+        "$ref": "#/definitions/resource_entry"
+      }
+    }
+  },
+  "definitions": {
+    "resource_entry": {
+      "type": "object",
+      "required": ["resource_id", "resource_type", "status", "ttl", "trust_anchor"],
+      "properties": {
+        "resource_id": {
+          "type": "string",
+          "description": "资源唯一标识",
+          "example": "server/ap-southeast-02"
+        },
+        "resource_type": {
+          "type": "string",
+          "enum": ["compute", "storage", "energy_grid", "battery", "other"],
+          "description": "资源类型：算力 / 存储 / 电网区域 / 储能"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["up", "degraded", "down"],
+          "description": "资源可用状态"
+        },
+        "price_per_mwh": {
+          "type": "number",
+          "description": "区域电价（本币/MWh），可为负值（负电价）"
+        },
+        "green_ratio": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "绿电比例（0~1）"
+        },
+        "avail_compute": {
+          "type": "object",
+          "description": "可用算力",
+          "properties": {
+            "gpu_count": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "可用 GPU 数量"
+            },
+            "vram_gb": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "可用显存（GB）"
+            }
+          }
+        },
+        "battery_soc": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "本地储能剩余电量（0~1），可选"
+        },
+        "latency_ms": {
+          "type": "number",
+          "minimum": 0,
+          "description": "到本设备的网络时延（毫秒）"
+        },
+        "co2_intensity": {
+          "type": "number",
+          "minimum": 0,
+          "description": "碳排放强度（可选）"
+        },
+        "ttl": {
+          "type": "string",
+          "pattern": "^\\d+(s|m|h)$",
+          "description": "表项有效期（如 300s），过期即失效",
+          "example": "300s"
+        },
+        "trust_anchor": {
+          "type": "string",
+          "description": "身份来源（SPIFFE ID），接收方按 RFC-003 零信任模型验证",
+          "example": "spiffe://open-compute-router.org/server/ap-southeast-02"
+        }
+      }
+    }
+  }
+}

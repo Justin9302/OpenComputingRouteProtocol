@@ -62,6 +62,7 @@ AI Agent 通过 MCP 绑定声明算力意图（Compute Intent），包括：显�
 | SLA Tier | 时效分级（T0-T10，见 RFC-002） |
 | Security Level | 安全隔离级别（见 RFC-003） |
 | Energy Plugin | 电网数据插件（见 RFC-004） |
+| Resource Table | 设备级资源表：每台设备独立维护、类似路由表的「算力 × 能源」视图（见 RFC-005） |
 
 ## 5. 协议文档索引
 
@@ -71,6 +72,7 @@ AI Agent 通过 MCP 绑定声明算力意图（Compute Intent），包括：显�
 | RFC-002 | 时效分级调度模型 | Draft |
 | RFC-003 | 零信任安全模型 | Draft |
 | RFC-004 | 算电协同与电网数据接入 | Draft |
+| RFC-005 | 设备级自治与资源表 | Draft |
 
 ## 6. 演进原则
 

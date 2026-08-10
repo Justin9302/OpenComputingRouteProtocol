@@ -20,6 +20,7 @@ This is a Protocol for Distributed AI Computing Router.
 - **安全**：基于零信任架构，支持私有算力隔离与端到端加密。
 - **算电协同**：将计算任务与电力价格、绿电供给动态匹配，实现"算力跟着电力走"。
 - **时效分级**：从 1 分钟实时底座到 24 小时离线批处理，用时间换取成本与能源的最优解。
+- **设备级自治**：电力/算力数据在 Hub/Switch/Router 设备层处理，设备独立维护资源表（类似路由表），不受任何第三方影响，安全性内生于架构。
 
 ## 🏗️ 三层架构
 
@@ -61,6 +62,7 @@ This is a Protocol for Distributed AI Computing Router.
 | [RFC-002]()     | **时效分级调度模型**       | **Draft** |
 | [RFC-003]()     | **零信任安全模型**         | **Draft** |
 | [RFC-004]()     | **算电协同与电网数据接入** | **Draft** |
+| [RFC-005]()     | **设备级自治与资源表**     | **Draft** |
 
 > 🗺️ **项目路线图**：[ROADMAP.md](ROADMAP.md) — 查看项目推进计划与里程碑
 
@@ -73,6 +75,13 @@ This is a Protocol for Distributed AI Computing Router.
 ```
 cd examples
 python hub-simulator.py --config mock-config.yaml
+```
+
+运行资源表模拟器（RFC-005 设备级自治）
+
+```
+cd examples
+python resource-table-mock.py
 ```
 
 提交一个MCP算力意图
