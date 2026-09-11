@@ -66,6 +66,8 @@ This is a Protocol for Distributed AI Computing Router.
 | [RFC-006]()     | **任务执行与生命周期协议** | **Draft** |
 
 > 🗺️ **项目路线图**：[ROADMAP.md](ROADMAP.md) — 查看项目推进计划与里程碑
+>
+> 💼 **商用与企业版**：[COMMERCIAL_STRATEGY.md](docs/COMMERCIAL_STRATEGY.md) — 开源版与企业版功能边界、商业合作模式、定价参考
 
 
 
