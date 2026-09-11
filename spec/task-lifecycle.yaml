@@ -1,0 +1,140 @@
+# 任务生命周期状态机定义
+# 参考 RFC-006: 任务执行与生命周期协议
+
+version: 1.0
+
+description: >
+  OCR 任务生命周期状态机。任务从提交到终态经历的状态转换，
+  由 Hub 和 Server 共同维护。Hub 是状态的权威来源，
+  Server 通过消息上报状态变化。
+
+states:
+  - id: pending
+    label: 待调度
+    description: 任务已提交，等待 Hub 选择节点并下发
+    entry_actions:
+      - Hub 校验 Compute Intent 格式
+      - Hub 检查预算与 SLA 约束
+    exit_conditions:
+      - Hub 发送 AssignTask → assigned
+      - 用户取消 → cancelled
+      - 超时 → timeout
+
+  - id: assigned
+    label: 已分配
+    description: 任务已分配给节点，等待节点确认接受
+    entry_actions:
+      - Hub 向目标节点发送 AssignTask
+    exit_conditions:
+      - 节点回复 TaskAccept → running
+      - 节点回复 TaskReject → pending（重新调度）
+      - 节点超时未响应 → pending（标记节点不可用）
+      - 用户取消 → cancelled
+
+  - id: running
+    label: 执行中
+    description: 节点正在执行任务
+    entry_actions:
+      - 节点下载输入数据
+      - 节点启动执行命令
+      - 节点定期上报 TaskStatus
+    exit_conditions:
+      - 节点上报 TaskComplete → completed
+      - 节点上报 TaskFail → failed
+      - Hub 发送 PreemptTask → preempted
+      - Hub 发送 CancelTask → cancelled
+      - 超过 deadline → timeout
+
+  - id: preempted
+    label: 已抢占
+    description: 被高优任务抢占，已暂停并保存 checkpoint
+    entry_actions:
+      - Hub 发送 PreemptTask（含宽限时间）
+      - 节点在宽限时间内保存 checkpoint
+      - 节点回复 PreemptAck
+    exit_conditions:
+      - checkpoint 保存完成 → pending（重新调度，携带 resume_from）
+      - checkpoint 保存失败 → failed
+
+  - id: completed
+    label: 已完成
+    description: 任务成功完成
+    is_terminal: true
+    entry_actions:
+      - 节点上传结果到 output.upload_url
+      - 节点上报 TaskComplete（含结果引用与 metrics）
+      - Hub 通知用户
+
+  - id: failed
+    label: 已失败
+    description: 任务执行失败
+    is_terminal: true
+    entry_actions:
+      - 节点上报 TaskFail（含错误码与日志）
+      - Hub 记录失败原因，通知用户
+    retry_policy:
+      - 错误码为 retryable 时，用户可重新提交
+      - 非 retryable 错误（如 OOM），建议调整资源需求后重试
+
+  - id: cancelled
+    label: 已取消
+    description: 用户主动取消
+    is_terminal: true
+    entry_actions:
+      - Hub 发送 CancelTask
+      - 节点终止执行，清理临时数据
+
+  - id: timeout
+    label: 已超时
+    description: 超过 SLA max_completion_time 未完成
+    is_terminal: true
+    entry_actions:
+      - Hub 检测到超过 deadline
+      - Hub 发送 CancelTask
+      - 节点终止执行，已产生的部分结果按 partial_result_ref 上传
+
+transitions:
+  - from: pending
+    to: assigned
+    trigger: Hub 调度成功，发送 AssignTask
+  - from: assigned
+    to: running
+    trigger: 节点 TaskAccept
+  - from: assigned
+    to: pending
+    trigger: 节点 TaskReject 或超时
+  - from: running
+    to: completed
+    trigger: 节点 TaskComplete
+  - from: running
+    to: failed
+    trigger: 节点 TaskFail
+  - from: running
+    to: preempted
+    trigger: Hub PreemptTask（高优任务到达）
+  - from: preempted
+    to: pending
+    trigger: checkpoint 保存完成，重新入队
+  - from: "*"
+    to: cancelled
+    trigger: 用户 CancelTask
+  - from: pending
+    to: timeout
+    trigger: 超过 max_completion_time 仍未调度
+  - from: running
+    to: timeout
+    trigger: 超过 deadline
+
+heartbeat:
+  interval_seconds: 30
+  description: Server 定期发送 Heartbeat，含资源状态与电网信息
+  timeout:
+    missed_threshold: 3
+    action: 标记节点 down，running 任务重新调度（interruptible）或标记 failed（非 interruptible）
+
+preempt:
+  grace_period_default: "5m"
+  description: 抢占时给予节点保存 checkpoint 的宽限时间
+  requirements:
+    - interruptible 必须为 true
+    - 任务类型支持 checkpoint（无状态推理可直接终止）

@@ -27,13 +27,18 @@ DEMO_TASK = {
     "compute_intent": {"min_vram_gb": 640, "gpu_count": 8},
     "sla_scheduling": {
         "tier": "T9",
-        "price_ceiling": 30,  # 只在 <30 AUD/MWh 时执行
+        "price_ceiling": 5.0,  # 任务总预算上限（AUD），对齐 RFC-002 §4.4 预算约束调度
+        "currency": "AUD",
+        "cost_optimization": "min_cost",
         "energy_preference": {"prefer_green": True},
     },
 }
 
 # 演示 GPU 集群规格（对应 server-node-mock 的节点）
 CLUSTER = {"gpu": 8, "vram_gb": 640, "power_kw": 28}  # 8x H100 满载约 28kW
+
+# 任务执行时长（小时），用于计算总成本
+TASK_DURATION_HOURS = 2.0
 
 
 def ensure_price_data() -> list:
@@ -50,18 +55,44 @@ def ensure_price_data() -> list:
     return rows
 
 
-def pick_execution_window(rows: list, ceiling: float, min_len: int = 4) -> list:
-    """调度决策（对齐 RFC-002 T8-T10 语义）：连续满足 电价<ceiling 的时段"""
+def pick_execution_window(rows: list, budget_aud: float, power_kw: float,
+                          duration_hours: float, min_len: int = 4,
+                          optimize: str = "min_cost") -> list:
+    """
+    预算约束调度（对齐 RFC-002 §4.4）：
+    对每个候选时段计算总成本 = 电价 × 功率 × 时长，
+    筛选总成本 <= 预算的时段，按优化目标选择最优窗口。
+
+    Args:
+        rows: 电价曲线（time, price, green）
+        budget_aud: 任务总预算（AUD）
+        power_kw: 节点功率（kW）
+        duration_hours: 任务执行时长（小时）
+        min_len: 最小连续时段数
+        optimize: 优化目标 min_cost / max_green / fastest
+    """
+    mwh = power_kw * duration_hours / 1000.0
+    candidates = []
     window = []
-    best = []
+
     for r in rows:
-        if r["price"] < ceiling:
-            window.append(r)
-            if len(window) > len(best):
-                best = list(window)
+        cost = r["price"] * mwh  # 该时段执行的电力成本（AUD，可为负）
+        if cost <= budget_aud:
+            window.append({**r, "cost": cost})
+            if len(window) >= min_len:
+                candidates.append(list(window))
         else:
             window = []
-    return best if len(best) >= min_len else best
+
+    if not candidates:
+        return []
+
+    if optimize == "min_cost":
+        return min(candidates, key=lambda w: sum(r["cost"] for r in w) / len(w))
+    elif optimize == "max_green":
+        return max(candidates, key=lambda w: sum(r["green"] for r in w) / len(w))
+    else:  # fastest
+        return candidates[0]
 
 
 def main():
@@ -80,21 +111,31 @@ def main():
     print(f"\n② 提交任务：{task['task_id']}")
     print(f"   tier={task['sla_scheduling']['tier']}（低优，可延迟 24h）"
           f" min_vram={task['compute_intent']['min_vram_gb']}GB"
-          f" price_ceiling={task['sla_scheduling']['price_ceiling']} AUD/MWh")
+          f" budget={task['sla_scheduling']['price_ceiling']} AUD"
+          f" optimize={task['sla_scheduling'].get('cost_optimization', 'min_cost')}")
 
-    # 3. 调度决策：找负电价窗口
-    window = pick_execution_window(rows, task["sla_scheduling"]["price_ceiling"])
+    # 3. 调度决策：预算约束调度（RFC-002 §4.4）
+    budget = task["sla_scheduling"]["price_ceiling"]
+    optimize = task["sla_scheduling"].get("cost_optimization", "min_cost")
+    window = pick_execution_window(
+        rows, budget_aud=budget, power_kw=CLUSTER["power_kw"],
+        duration_hours=TASK_DURATION_HOURS, optimize=optimize
+    )
     if not window:
-        print("\n⚠️ 今日无满足条件的低价窗口，任务保持 PENDING（这正是'等电来'）")
+        print(f"\n⚠️ 今日无满足预算（{budget} AUD）的执行窗口，任务保持 PENDING（这正是'等电来'）")
+        print("   建议：提高 price_ceiling 或放宽 SLA Tier 时间窗口")
         return
 
     exec_price = sum(r["price"] for r in window) / len(window)
     exec_green = sum(r["green"] for r in window) / len(window)
-    print(f"\n③ 调度决策：在 {window[0]['time']}–{window[-1]['time']} 执行"
+    exec_cost = sum(r["cost"] for r in window) / len(window)
+    print(f"\n③ 调度决策（预算约束：{budget} AUD，优化目标={optimize}）：")
+    print(f"   在 {window[0]['time']}–{window[-1]['time']} 执行"
           f"（均价 {exec_price:.1f} AUD/MWh，绿电 {exec_green:.0%}）")
+    print(f"   预计电力成本：{exec_cost:+.2f} AUD（在预算 {budget} AUD 内）")
 
-    # 4. 省钱对比：假设任务耗时 2 小时、集群 28kW
-    hours = 2.0
+    # 4. 省钱对比：任务耗时 TASK_DURATION_HOURS、集群 28kW
+    hours = TASK_DURATION_HOURS
     mwh = CLUSTER["power_kw"] * hours / 1000.0
     daytime_avg = 180.0  # 白昼高峰典型均价
     cost_window = mwh * exec_price

@@ -63,6 +63,7 @@ This is a Protocol for Distributed AI Computing Router.
 | [RFC-003]()     | **零信任安全模型**         | **Draft** |
 | [RFC-004]()     | **算电协同与电网数据接入** | **Draft** |
 | [RFC-005]()     | **设备级自治与资源表**     | **Draft** |
+| [RFC-006]()     | **任务执行与生命周期协议** | **Draft** |
 
 > 🗺️ **项目路线图**：[ROADMAP.md](ROADMAP.md) — 查看项目推进计划与里程碑
 

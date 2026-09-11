@@ -4,7 +4,7 @@
 - **状态**: Draft
 - **作者**: Open Compute Router Contributors
 - **创建日期**: 2026-08-07
-- **最后更新**: 2026-08-07
+- **最后更新**: 2026-09-11
 
 ## 1. 摘要
 
@@ -43,7 +43,9 @@
   "sla_scheduling": {
     "tier": "T6",
     "max_completion_time": "2h",
-    "price_ceiling": 0.05,
+    "price_ceiling": 50.0,
+    "currency": "AUD",
+    "cost_optimization": "min_cost",
     "interruptible": true,
     "energy_preference": {
       "prefer_green": true,
@@ -52,6 +54,14 @@
   }
 }
 ```
+
+**字段说明**：
+- `tier`：SLA 分级，决定时间窗口和可中断性
+- `max_completion_time`：任务必须完成的时间上限
+- `price_ceiling`：**任务总预算上限**（本币），调度器在该预算内寻找最优执行方案
+- `currency`：预算货币代码，默认 AUD
+- `cost_optimization`：优化目标（最低成本 / 最高绿电 / 最快完成）
+- `interruptible`：是否允许被高优任务抢占
 
 
 ### 4.2 抢占与降级
@@ -62,9 +72,42 @@
 
 ### 4.3 绿电套利
 
-
 Hub 定期拉取电网开放数据（如 AEMO Price Forecast）。
-若预测未来 N 小时内电价低于 price_ceiling 且绿电比例达标，Hub 将对应 Tier 的任务提前唤醒执行。
+若预测未来 N 小时内电价处于低位且绿电比例达标，Hub 将对应 Tier 的任务提前唤醒执行。绿电套利是预算约束调度（§4.4）的一种特殊情形——当 `cost_optimization=max_green` 时，调度器优先选择绿电比例最高的时段，而非单纯成本最低。
+
+### 4.4 预算约束调度
+
+`price_ceiling` 定义任务的**总预算上限**，与 `max_completion_time` 共同构成调度的双约束。调度器在时间窗口内寻找满足预算的最优执行方案。
+
+**调度逻辑**：
+
+```
+输入：
+  - 任务预计执行时长（estimated_duration）
+  - 节点功率（来自资源表）
+  - 未来 N 小时电价预测（来自能源插件，RFC-004）
+  - 算力服务费（节点报价）
+  - price_ceiling（总预算）
+  - cost_optimization（优化目标）
+
+计算：
+  对时间窗口内每个候选时段：
+    电力成本 = 电价 × 节点功率 × 执行时长
+    算力成本 = 算力单价 × 执行时长
+    总成本 = 电力成本 + 算力成本
+    若 总成本 <= price_ceiling → 该时段可行
+
+选择：
+  - min_cost：选总成本最低的可行时段
+  - max_green：选绿电比例最高的可行时段
+  - fastest：选最早开始的可行时段
+```
+
+**关键原则**：
+- 电价是调度器的**内部输入**，不直接暴露给用户。用户只关心"总共花多少钱"
+- 若时间窗口内无任何时段满足预算，任务保持 `pending`，并通知用户"预算不足，建议提高 price_ceiling 或放宽时间窗口"
+- `price_ceiling` 为可选字段；未设置时调度器按 `cost_optimization` 默认策略选择最优时段，不设预算上限
+- 预算仅约束算力+电力的直接成本，不含数据传输费（后续版本可扩展）
 
 ### 5. 安全与合规
 

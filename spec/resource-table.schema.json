@@ -61,7 +61,7 @@
         },
         "avail_compute": {
           "type": "object",
-          "description": "可用算力",
+          "description": "可用算力（P1-2 已扩充字段）",
           "properties": {
             "gpu_count": {
               "type": "integer",
@@ -72,6 +72,43 @@
               "type": "integer",
               "minimum": 0,
               "description": "可用显存（GB）"
+            },
+            "gpu_model": {
+              "type": "string",
+              "description": "GPU 型号，如 H100-80GB、A100-40GB、RTX3090。用于区分算力能力差异。"
+            },
+            "compute_capability": {
+              "type": "object",
+              "description": "计算能力描述（可选），用于更精确的算力匹配",
+              "properties": {
+                "fp8_tflops": {
+                  "type": "number",
+                  "description": "FP8 算力（TFLOPS），单卡"
+                },
+                "fp16_tflops": {
+                  "type": "number",
+                  "description": "FP16 算力（TFLOPS），单卡"
+                },
+                "fp32_tflops": {
+                  "type": "number",
+                  "description": "FP32 算力（TFLOPS），单卡"
+                }
+              }
+            },
+            "network_bandwidth_gbps": {
+              "type": "number",
+              "minimum": 0,
+              "description": "节点网络带宽（Gbps）。分布式训练任务需要高带宽。"
+            },
+            "cpu_cores": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "可用 CPU 核心数。数据预处理等 CPU 密集型任务需要。"
+            },
+            "ram_gb": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "可用内存（GB）"
             }
           }
         },
@@ -85,6 +122,10 @@
           "type": "number",
           "minimum": 0,
           "description": "到本设备的网络时延（毫秒）"
+        },
+        "network_zone": {
+          "type": "string",
+          "description": "节点所属网络区域（P2-7，预留字段）。如 office、home、public-cloud。用于位置感知调度，与 compute-intent 的 network_affinity 匹配。"
         },
         "co2_intensity": {
           "type": "number",

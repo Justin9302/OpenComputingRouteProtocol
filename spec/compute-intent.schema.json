@@ -41,6 +41,40 @@
           "type": "string",
           "enum": ["public", "internal", "private_only", "confidential"],
           "description": "安全隔离级别"
+        },
+        "data_governance": {
+          "type": "object",
+          "description": "数据治理与主权约束（P2-8，预留字段）",
+          "properties": {
+            "data_sensitivity": {
+              "type": "string",
+              "enum": ["low", "medium", "high", "critical"],
+              "description": "数据敏感度分级。可由用户声明，或由 Hub 自动检测后填入。high/critical 级别强制路由到 private_only 节点并要求脱敏。"
+            },
+            "data_masking_required": {
+              "type": "boolean",
+              "description": "是否要求脱敏管道处理。data_sensitivity 为 high/critical 时默认为 true。"
+            },
+            "data_residency": {
+              "type": "object",
+              "description": "数据地域/网络驻留约束",
+              "properties": {
+                "network_zone": {
+                  "type": "string",
+                  "description": "允许处理数据的网络区域（如 office、home），对应资源表的 network_zone 字段"
+                },
+                "country": {
+                  "type": "string",
+                  "description": "允许处理数据的国家/地区代码（ISO 3166-1 alpha-2），如 AU、CN"
+                },
+                "allow_cross_zone": {
+                  "type": "boolean",
+                  "default": false,
+                  "description": "是否允许跨网络区域处理。默认 false，即数据不出指定区域。"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -60,12 +94,33 @@
         "price_ceiling": {
           "type": "number",
           "minimum": 0,
-          "description": "愿意支付的最高单价（货币单位/任务）"
+          "description": "任务总预算上限（本币）。调度器在该预算内，结合 SLA 时间窗口寻找最优执行方案。电价为调度器内部输入，不直接暴露给用户。"
+        },
+        "cost_optimization": {
+          "type": "string",
+          "enum": ["min_cost", "max_green", "fastest"],
+          "default": "min_cost",
+          "description": "成本优化目标：min_cost=最低成本（默认），max_green=最高绿电比例，fastest=最快完成（容忍较高成本）"
+        },
+        "currency": {
+          "type": "string",
+          "default": "AUD",
+          "description": "预算货币代码（ISO 4217），默认 AUD（澳洲 NEM 市场）"
         },
         "interruptible": {
           "type": "boolean",
           "default": false,
           "description": "是否允许被高优任务抢占"
+        },
+        "tenant_priority": {
+          "type": "string",
+          "enum": ["gold", "standard", "economy"],
+          "default": "standard",
+          "description": "租户优先级（P2-6，预留字段）。与 SLA Tier 联合决定调度权重。企业版 Hub 可据此实现差异化分级策略。"
+        },
+        "network_affinity": {
+          "type": "string",
+          "description": "网络亲和性（P2-7，预留字段）。优先调度到指定 network_zone 的节点（如 office、home）。客户端可根据当前网络环境自动填入。"
         },
         "energy_preference": {
           "type": "object",

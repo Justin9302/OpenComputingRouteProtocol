@@ -1,0 +1,351 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://open-compute-router.org/spec/task-execution.messages.json",
+  "title": "TaskExecutionMessages",
+  "description": "OCR 任务执行协议消息格式定义（RFC-006）。Hub 与 Server 之间的所有消息均遵循本 Schema。",
+  "type": "object",
+  "required": ["message_type"],
+  "properties": {
+    "message_type": {
+      "type": "string",
+      "enum": [
+        "RegisterNode",
+        "Heartbeat",
+        "HeartbeatAck",
+        "AssignTask",
+        "TaskAccept",
+        "TaskReject",
+        "TaskStatus",
+        "TaskComplete",
+        "TaskFail",
+        "PreemptTask",
+        "PreemptAck",
+        "CancelTask"
+      ],
+      "description": "消息类型标识"
+    }
+  },
+  "oneOf": [
+    {
+      "title": "RegisterNode",
+      "description": "Server 首次连接 Hub 时发送，声明自身能力",
+      "properties": {
+        "message_type": { "const": "RegisterNode" },
+        "node_id": { "type": "string", "description": "节点 SPIFFE ID" },
+        "capabilities": {
+          "type": "object",
+          "properties": {
+            "compute": {
+              "type": "object",
+              "properties": {
+                "gpu_model": { "type": "string" },
+                "gpu_count": { "type": "integer" },
+                "vram_gb": { "type": "integer" },
+                "cpu_cores": { "type": "integer" },
+                "ram_gb": { "type": "integer" },
+                "network_bandwidth_gbps": { "type": "number" }
+              }
+            },
+            "supported_task_types": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["inference", "training", "fine_tuning", "batch_processing", "data_cleaning"]
+              }
+            },
+            "max_concurrent_tasks": { "type": "integer" }
+          },
+          "required": ["compute"]
+        },
+        "location": {
+          "type": "object",
+          "properties": {
+            "region": { "type": "string", "description": "电网区域，如 NSW1" },
+            "grid_price_per_mwh": { "type": "number" },
+            "green_ratio": { "type": "number", "minimum": 0, "maximum": 1 },
+            "network_zone": { "type": "string" }
+          }
+        },
+        "protocol_version": { "type": "string" }
+      },
+      "required": ["message_type", "node_id", "capabilities", "protocol_version"]
+    },
+    {
+      "title": "Heartbeat",
+      "description": "Server 定期发送心跳，上报资源状态",
+      "properties": {
+        "message_type": { "const": "Heartbeat" },
+        "node_id": { "type": "string" },
+        "status": { "type": "string", "enum": ["up", "degraded", "down"] },
+        "resources": {
+          "type": "object",
+          "properties": {
+            "avail_gpu": { "type": "integer" },
+            "avail_vram_gb": { "type": "integer" },
+            "running_tasks": { "type": "integer" },
+            "cpu_load": { "type": "number" },
+            "power_kw": { "type": "number" }
+          }
+        },
+        "grid": {
+          "type": "object",
+          "properties": {
+            "region": { "type": "string" },
+            "price_per_mwh": { "type": "number" },
+            "green_ratio": { "type": "number" }
+          }
+        },
+        "sent_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["message_type", "node_id", "status", "sent_at"]
+    },
+    {
+      "title": "AssignTask",
+      "description": "Hub 向节点下发任务",
+      "properties": {
+        "message_type": { "const": "AssignTask" },
+        "task_id": { "type": "string" },
+        "compute_intent": {
+          "type": "object",
+          "properties": {
+            "type": { "type": "string" },
+            "min_vram_gb": { "type": "integer" },
+            "preferred_arch": { "type": "array", "items": { "type": "string" } },
+            "security_level": { "type": "string" }
+          },
+          "required": ["type"]
+        },
+        "sla_scheduling": {
+          "type": "object",
+          "properties": {
+            "tier": { "type": "string", "pattern": "^T([0-9]|10)$" },
+            "max_completion_time": { "type": "string" },
+            "price_ceiling": { "type": "number" },
+            "interruptible": { "type": "boolean" }
+          }
+        },
+        "execution": {
+          "type": "object",
+          "properties": {
+            "command": { "type": "string" },
+            "working_dir": { "type": "string" },
+            "estimated_duration": { "type": "string" },
+            "env": { "type": "object", "additionalProperties": { "type": "string" } }
+          },
+          "required": ["command"]
+        },
+        "data": {
+          "type": "object",
+          "properties": {
+            "mode": { "type": "string", "enum": ["reference", "inline"] },
+            "inputs": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "url": { "type": "string" },
+                  "checksum": { "type": "string" },
+                  "size_bytes": { "type": "integer" }
+                },
+                "required": ["name", "url"]
+              }
+            },
+            "output": {
+              "type": "object",
+              "properties": {
+                "upload_url": { "type": "string" },
+                "expected_files": { "type": "array", "items": { "type": "string" } }
+              }
+            }
+          }
+        },
+        "checkpoint": {
+          "type": "object",
+          "properties": {
+            "resume_from": { "type": ["string", "null"] },
+            "upload_url": { "type": "string" }
+          }
+        },
+        "deadline": { "type": "string", "format": "date-time" }
+      },
+      "required": ["message_type", "task_id", "compute_intent", "execution", "deadline"]
+    },
+    {
+      "title": "TaskAccept",
+      "description": "节点接受任务",
+      "properties": {
+        "message_type": { "const": "TaskAccept" },
+        "task_id": { "type": "string" },
+        "node_id": { "type": "string" },
+        "accepted_at": { "type": "string", "format": "date-time" },
+        "estimated_start": { "type": "string", "format": "date-time" }
+      },
+      "required": ["message_type", "task_id", "node_id", "accepted_at"]
+    },
+    {
+      "title": "TaskReject",
+      "description": "节点拒绝任务",
+      "properties": {
+        "message_type": { "const": "TaskReject" },
+        "task_id": { "type": "string" },
+        "node_id": { "type": "string" },
+        "reason": {
+          "type": "string",
+          "enum": ["insufficient_vram", "insufficient_gpu", "node_busy", "security_policy_violation", "unsupported_task_type", "other"]
+        },
+        "detail": { "type": "string" }
+      },
+      "required": ["message_type", "task_id", "node_id", "reason"]
+    },
+    {
+      "title": "TaskStatus",
+      "description": "节点上报任务执行进度",
+      "properties": {
+        "message_type": { "const": "TaskStatus" },
+        "task_id": { "type": "string" },
+        "node_id": { "type": "string" },
+        "status": { "type": "string", "enum": ["running", "downloading", "starting"] },
+        "progress": {
+          "type": "object",
+          "properties": {
+            "percent": { "type": "number" },
+            "current_step": { "type": "integer" },
+            "total_steps": { "type": "integer" },
+            "elapsed_time": { "type": "string" },
+            "estimated_remaining": { "type": "string" }
+          }
+        },
+        "resource_usage": {
+          "type": "object",
+          "properties": {
+            "gpu_utilization": { "type": "number" },
+            "vram_used_gb": { "type": "number" },
+            "power_kw": { "type": "number" },
+            "power_price_per_mwh": { "type": "number" }
+          }
+        },
+        "logs_tail": { "type": "string" },
+        "reported_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["message_type", "task_id", "node_id", "status", "reported_at"]
+    },
+    {
+      "title": "TaskComplete",
+      "description": "任务成功完成",
+      "properties": {
+        "message_type": { "const": "TaskComplete" },
+        "task_id": { "type": "string" },
+        "node_id": { "type": "string" },
+        "completed_at": { "type": "string", "format": "date-time" },
+        "duration": { "type": "string" },
+        "result": {
+          "type": "object",
+          "properties": {
+            "output_ref": { "type": "string" },
+            "files": { "type": "array", "items": { "type": "string" } },
+            "checksum": { "type": "string" }
+          },
+          "required": ["output_ref"]
+        },
+        "metrics": {
+          "type": "object",
+          "properties": {
+            "gpu_hours": { "type": "number" },
+            "energy_kwh": { "type": "number" },
+            "energy_cost": { "type": "number" }
+          }
+        },
+        "exit_code": { "type": "integer" }
+      },
+      "required": ["message_type", "task_id", "node_id", "completed_at", "result", "exit_code"]
+    },
+    {
+      "title": "TaskFail",
+      "description": "任务执行失败",
+      "properties": {
+        "message_type": { "const": "TaskFail" },
+        "task_id": { "type": "string" },
+        "node_id": { "type": "string" },
+        "failed_at": { "type": "string", "format": "date-time" },
+        "error": {
+          "type": "object",
+          "properties": {
+            "code": {
+              "type": "string",
+              "enum": ["OOM", "DATA_DOWNLOAD_FAILED", "EXECUTION_ERROR", "NODE_FAILURE", "TIMEOUT", "SECURITY_VIOLATION", "OTHER"]
+            },
+            "message": { "type": "string" },
+            "retryable": { "type": "boolean" }
+          },
+          "required": ["code", "message"]
+        },
+        "logs_tail": { "type": "string" },
+        "partial_result_ref": { "type": "string" },
+        "exit_code": { "type": "integer" }
+      },
+      "required": ["message_type", "task_id", "node_id", "failed_at", "error"]
+    },
+    {
+      "title": "PreemptTask",
+      "description": "Hub 抢占正在执行的低优任务",
+      "properties": {
+        "message_type": { "const": "PreemptTask" },
+        "task_id": { "type": "string" },
+        "reason": { "type": "string", "enum": ["high_priority_task_arrived", "grid_peak_shaving", "manual"] },
+        "grace_period": { "type": "string", "description": "保存 checkpoint 的宽限时间，如 5m" },
+        "checkpoint_upload_url": { "type": "string" }
+      },
+      "required": ["message_type", "task_id", "reason", "grace_period"]
+    },
+    {
+      "title": "PreemptAck",
+      "description": "节点确认抢占，报告 checkpoint 状态",
+      "properties": {
+        "message_type": { "const": "PreemptAck" },
+        "task_id": { "type": "string" },
+        "node_id": { "type": "string" },
+        "checkpoint_saved": { "type": "boolean" },
+        "checkpoint_ref": { "type": ["string", "null"] },
+        "progress_at_preempt": {
+          "type": "object",
+          "properties": {
+            "percent": { "type": "number" },
+            "current_step": { "type": "integer" }
+          }
+        },
+        "acknowledged_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["message_type", "task_id", "node_id", "checkpoint_saved", "acknowledged_at"]
+    },
+    {
+      "title": "CancelTask",
+      "description": "Hub 取消任务",
+      "properties": {
+        "message_type": { "const": "CancelTask" },
+        "task_id": { "type": "string" },
+        "reason": { "type": "string", "enum": ["user_requested", "timeout", "policy_violation"] }
+      },
+      "required": ["message_type", "task_id", "reason"]
+    },
+    {
+      "title": "HeartbeatAck",
+      "description": "Hub 响应心跳",
+      "properties": {
+        "message_type": { "const": "HeartbeatAck" },
+        "acknowledged_at": { "type": "string", "format": "date-time" },
+        "pending_tasks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "task_id": { "type": "string" },
+              "action": { "type": "string", "enum": ["continue", "preempt", "cancel"] }
+            }
+          }
+        }
+      },
+      "required": ["message_type", "acknowledged_at"]
+    }
+  ]
+}

@@ -95,5 +95,9 @@ cat spec/sla-tiers.yaml
 | [docs/RFC-002.md](docs/RFC-002-sla-tiering.md) | 时效分级调度模型 |
 | [docs/RFC-003.md](docs/RFC-003-security-model.md) | 零信任安全模型 |
 | [docs/RFC-004.md](docs/RFC-004-energy-integration.md) | 算电协同与电网数据接入 |
+| [docs/RFC-005.md](docs/RFC-005-resource-table-and-device-level-autonomy.md) | 设备级自治与资源表 |
+| [docs/RFC-006.md](docs/RFC-006-task-execution-protocol.md) | 任务执行与生命周期协议 |
+| [docs/PROTOCOL_IMPROVEMENTS.md](docs/PROTOCOL_IMPROVEMENTS.md) | 协议改进待办清单 |
+| [docs/DEVELOPMENT_PLAN_2026Q3-Q4.md](docs/DEVELOPMENT_PLAN_2026Q3-Q4.md) | 发展计划（2026 Q3-Q4） |
 | [spec/](spec/) | 协议规范（Schema / YAML） |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | 贡献指南 |

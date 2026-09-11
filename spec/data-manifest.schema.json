@@ -1,0 +1,118 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://open-compute-router.org/schemas/data-manifest.json",
+  "title": "OCR Data Sensitivity Manifest",
+  "description": "客户端敏感度清单文件，由终端插件（如 DeepSeek Harness 插件）在本地扫描后生成。Hub 优先读取此清单而非扫描数据内容。对齐 RFC-003 §5.5。",
+  "type": "object",
+  "required": ["manifest_version", "scanned_by", "scanned_at", "overall_sensitivity", "files"],
+  "properties": {
+    "manifest_version": {
+      "type": "string",
+      "enum": ["1.0"],
+      "description": "Manifest 格式版本"
+    },
+    "scanned_by": {
+      "type": "string",
+      "description": "扫描插件名称，如 dsh-ocr-plugin"
+    },
+    "scanned_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "扫描时间（ISO 8601），Hub 用于防重放验证（默认 72 小时有效）"
+    },
+    "plugin_version": {
+      "type": "string",
+      "description": "插件版本号，Hub 校验是否在支持列表内"
+    },
+    "overall_sensitivity": {
+      "type": "string",
+      "enum": ["low", "medium", "high", "critical"],
+      "description": "整个数据集的综合敏感度级别（取所有文件的最高级别）"
+    },
+    "files": {
+      "type": "array",
+      "description": "文件级敏感度清单",
+      "items": {
+        "type": "object",
+        "required": ["path", "sha256", "sensitivity"],
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "文件相对路径（相对于数据集根目录）"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{64}$",
+            "description": "文件内容 SHA256 哈希，Hub 用于抽样验证文件未被篡改"
+          },
+          "size_bytes": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "文件大小（字节）"
+          },
+          "sensitivity": {
+            "type": "string",
+            "enum": ["low", "medium", "high", "critical"],
+            "description": "该文件的敏感度级别"
+          },
+          "detected_types": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "检测到的敏感数据类型（如 pii:id_card, pii:phone, financial:credit_card），不包含原文"
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "检测置信度（0-1）"
+          }
+        }
+      }
+    },
+    "client_env": {
+      "type": "object",
+      "description": "客户端环境声明（对齐 RFC-003 §5.6 第一层证明）",
+      "properties": {
+        "plugin_name": {
+          "type": "string",
+          "description": "插件名称"
+        },
+        "plugin_version": {
+          "type": "string",
+          "description": "插件版本"
+        },
+        "plugin_signature": {
+          "type": "string",
+          "description": "插件二进制签名（base64），用于验证插件完整性"
+        },
+        "os": {
+          "type": "string",
+          "description": "操作系统版本，如 macOS-14.5, Ubuntu-24.04"
+        },
+        "hostname_hash": {
+          "type": "string",
+          "description": "主机名哈希（不泄露真实主机名）"
+        },
+        "rule_db_version": {
+          "type": "string",
+          "description": "检测规则库版本"
+        },
+        "environment_health": {
+          "type": "object",
+          "description": "环境健康声明（企业版第二层证明）",
+          "properties": {
+            "is_root": {"type": "boolean", "description": "是否 root/越狱"},
+            "debugger_attached": {"type": "boolean", "description": "是否有调试器附加"},
+            "os_patches_uptodate": {"type": "boolean", "description": "系统补丁是否最新"},
+            "plugin_integrity_verified": {"type": "boolean", "description": "插件完整性是否验证通过"}
+          }
+        }
+      }
+    },
+    "signature": {
+      "type": "string",
+      "description": "Manifest 的数字签名（Ed25519，base64 编码），由插件私钥签名。Hub 用公钥验证来源可信。"
+    }
+  },
+  "additionalProperties": false
+}
