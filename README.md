@@ -14,7 +14,7 @@ This is a Protocol for Distributed AI Computing Router.
 
 在 AI 算力需求爆炸与能源转型瓶颈交织的时代，集中式云算力正面临**电力墙、安全墙、信任墙**的三重约束。
 
-**Open Compute Router (OCR)** 旨在定义一套轻量级、可演进的分布式算力路由协议：
+**Open Compute Router (OCR)** 旨在定义一套轻量级、可演进的分布式算力电力协同路由协议：
 
 - **中立**：不绑定任何芯片厂商、云厂商或 AI 框架。
 - **安全**：基于零信任架构，支持私有算力隔离与端到端加密。
