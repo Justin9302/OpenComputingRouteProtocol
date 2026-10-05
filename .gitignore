@@ -5,8 +5,8 @@ __pycache__/
 .venv/
 venv/
 
-# 生成数据（energy-price-mock.py 输出）
-examples/data/
+# 生成数据（energy-price-mock.py 输出），统一放 examples/data/mock/
+examples/data/mock/
 
 # 编辑器 / OS
 .DS_Store
