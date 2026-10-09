@@ -67,7 +67,7 @@ git log --oneline -5             # 查看最近历史
 git ls-remote origin main        # 确认远程同步状态（可选）
 ```
 
-然后根据用户意图，结合 `ROADMAP.md` 判断当前应推进的任务。
+> 🧭 **架构锚提醒**：任何协议变更前，先读 [docs/SYSTEM_OVERVIEW.md](docs/SYSTEM_OVERVIEW.md) 的系统框架锚定图——变更必须能映射回该图（图优先）；四条核心不变式（永不直接控制 OT 侧、控制流单向、设备级自治、撮合是控制平面职责）为红线，不得通过 RFC 修改绕过。
 
 ## 6. 常用命令速查
 
@@ -90,6 +90,7 @@ cat spec/sla-tiers.yaml
 | 文件 | 用途 |
 |------|------|
 | [README.md](README.md) | 项目门面（愿景、架构、快速开始） |
+| [docs/SYSTEM_OVERVIEW.md](docs/SYSTEM_OVERVIEW.md) | **系统框架锚定图**（架构锚，变更前必读） |
 | [ROADMAP.md](ROADMAP.md) | 路线图与当前阶段 |
 | [docs/RFC-001.md](docs/RFC-001-protocol-overview.md) | 协议总览与三层架构 |
 | [docs/RFC-002.md](docs/RFC-002-sla-tiering.md) | 时效分级调度模型 |

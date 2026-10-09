@@ -19,9 +19,10 @@ This is a Protocol for Distributed AI Computing Router.
 [用户层 / AI Agent]
        │  绑定 MCP，声明算力意图（显存、延迟、成本、安全、时效）
        ▼
-[Hub 层 / 控制平面]
+[控制平面（Hub / Router / Server）]
        │  验证身份，解析意图，撮合匹配（intent × capability），绑定任务，
        │  单向推送净负荷预测（RFC-009）——信息流双向，控制流单向
+       │  Hub=园区级简易 · Router=组织内/广域跨域路由 · Server=深度管理/全局出清
        ▼
 [Server 层 / 执行平面]
        │  执行计算任务，上报能力曲线（RFC-007），上报状态，本地对接电网开放数据
@@ -29,11 +30,13 @@ This is a Protocol for Distributed AI Computing Router.
 [算力与电力资源池]  (GPU/NPU/微电网/储能)
 ```
 > 🛡️ **安全边界**：OCRP 运行在机房"管理平面"（IT 侧）；PCS/储能控制（OT 侧）由机房 EMS 自己执行，两者之间 zone 隔离（IEC 62443）+ 白名单适配器（fail-closed）。协议的任何消息都不携带设备控制指令。
+> 🧭 **架构锚**：系统框架锚定图见 [docs/SYSTEM_OVERVIEW.md](docs/SYSTEM_OVERVIEW.md) ——任何协议变更必须能映射回该图（图优先）。
 ## 📈 市场模型（撮合闭环）
 ```text
 ① 机房上报能力曲线（时段×容量×价格下限×绿电×签约占用）  ← RFC-007
 ② 用户意图入池（容量/时延/预算/绿电偏好/Tier）           ← RFC-002
-③ Hub 撮合：intent × capability，多维权重排序，防超卖锁定  ← RFC-008
+③ 控制平面撮合：intent × capability，多维权重排序，防超卖锁定  ← RFC-008
+   （Hub 园区级本地撮合 / Router 跨域撮合 / Server 全局出清）
 ④ 绑定（committed）→ 单向推送净负荷预测给机房 EMS        ← RFC-009
 ⑤ 执行 → 结算 → 释放容量 → 回到 ①                      ← RFC-006/011
 ```
