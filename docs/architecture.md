@@ -24,7 +24,14 @@ open-compute-router/
 │   ├── RFC-003-security-model.md          # 零信任安全模型
 │   ├── RFC-004-energy-integration.md      # 算电协同与电网数据接入
 │   ├── RFC-005-resource-table-and-device-level-autonomy.md  # 设备级自治与资源表
-│   └── RFC-006-task-execution-protocol.md # 任务执行与生命周期协议
+│   ├── RFC-006-task-execution-protocol.md # 任务执行与生命周期协议
+│   ├── RFC-007-capability-advertisement.md # 供给侧能力上报协议
+│   ├── RFC-008-matching-and-clearing.md   # 撮合与市场出清模型
+│   ├── RFC-009-forecast-push.md           # 净负荷预测单向推送
+│   ├── RFC-010-trust-reputation.md        # 信任与信誉机制
+│   ├── RFC-011-settlement.md              # 结算与经济模型
+│   ├── RFC-AMENDMENTS-2026-10.md          # 现有 RFC 增补说明（002/003/005/006）
+│   └── RFC-COMPLETION-PLAN.md             # 市场协议补全索引与优先级
 │
 ├── spec/
 │   ├── compute-intent.schema.json         # MCP 算力意图 JSON Schema
@@ -86,8 +93,13 @@ open-compute-router/
 | RFC-002 | 时效分级调度模型 | T0-T10 分级、预算约束调度、抢占与降级 |
 | RFC-003 | 零信任安全模型 | mTLS/SPIFFE、数据分级、审计透明 |
 | RFC-004 | 算电协同与电网数据接入 | 能源插件、价格驱动调度、需求响应 |
-| RFC-005 | 设备级自治与资源表 | 资源表（类比路由表）、被动接收、BGP式扩散 |
-| RFC-006 | 任务执行与生命周期协议 | Hub↔Server 消息定义、状态机、抢占与断点续传 |
+| RFC-005 | 设备级自治与资源表 | 资源表（类比路由表）、被动接收、BGP式扩散、字段标准化+链路状态收敛 |
+| RFC-006 | 任务执行与生命周期协议 | Hub↔Server 消息定义、状态机、抢占与断点续传、撮合后闭环 |
+| RFC-007 | 供给侧能力上报协议 | 能力曲线（时段×容量×价格×绿电×签约占用）、增量更新、防超卖锁定 |
+| RFC-008 | 撮合与市场出清模型 | intent × capability 双边匹配、多维权重排序、PENDING（等电来） |
+| RFC-009 | 净负荷预测单向推送 | 预测下行（时间序列+置信度）、无反向控制通道、机房前瞻调度 |
+| RFC-010 | 信任与信誉机制 | 履约率/预测准确度/结算准时率、质押与惩罚、Tier 权限绑定 |
+| RFC-011 | 结算与经济模型 | SettlementRecord、三种商业模式、负电价结算规则 |
 
 ## 规范文件（spec）
 

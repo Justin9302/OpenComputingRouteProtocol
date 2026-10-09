@@ -1,6 +1,6 @@
 # 项目路线图 (ROADMAP)
 
-> **最后更新**: 2026-08-07
+> **最后更新**: 2026-10-09
 > **状态**: 内部规划 — 用于指导项目演进，欢迎社区讨论
 
 ---
@@ -72,6 +72,8 @@ Open Compute Router (OCR) 定义一套轻量级、可演进的**分布式算力�
 ### Phase 1 — 供给侧冷启动（第 1-2 月）
 
 **目标**：找到 3-5 个真实算力提供方，先供后需
+
+> **协议基础**：2026-10 市场协议补全已完成（RFC-007~011），"节点上线"已协议化为**能力上报**（RFC-007：时段×容量×价格下限×绿电×签约占用），撮合闭环（RFC-008）为需求侧接入做好准备。
 
 | 候选对象               | 为什么选它                            | 话术角度                             |
 | ---------------------- | ------------------------------------- | ------------------------------------ |
@@ -154,23 +156,22 @@ Open Compute Router (OCR) 定义一套轻量级、可演进的**分布式算力�
 
 ### ✅ 已完成
 
-- RFC-001~005 协议文档（Draft）
+- RFC-001~011 协议文档（Draft）：001 总览/002 时效分级/003 零信任/004 算电协同/005 设备级自治/006 任务生命周期/007 能力上报/008 撮合出清/009 预测推送/010 信任信誉/011 结算模型
+- 市场协议补全（2026-10）：能力上报→撮合→绑定→预测→结算闭环，安全边界（IT/OT 分层、控制流单向）
 - spec/ 四份规范文件（compute-intent / sla-tiers / energy-plugin / resource-table）
 - examples/hub-simulator.py（Hub 模拟器）
 - examples/energy-price-mock.py（AEMO 电价模拟，含负电价）
 - examples/server-node-mock.py（算力节点状态上报）
 - examples/resource-table-mock.py（RFC-005 设备级自治验证）
-- examples/demo-30s.py（30 秒可录屏 Demo：负电价时段跑训练）
+- examples/demo-30s.py（30 秒可录屏 Demo：负电价时段跑训练，含真实 AEMO 数据）
 - 社区治理文档（CONTRIBUTING / CODE_OF_CONDUCT / SECURITY / CHANGELOG）
 - GitHub 模板与 CI（Issue / PR 模板、spec-lint 工作流）
 
-### 🔜 进行中（Phase 0）
+### 🔜 进行中
 
-- [ ] `examples/energy-price-mock.py` — 模拟电价生成器
-- [ ] `examples/server-node-mock.py` — Server 节点模拟器
-- [ ] `examples/mcp-intent-example.json` — MCP 意图调用示例
-- [ ] AEMO 真实电价数据接入
-- [ ] 30 秒 Demo 脚本
+- [ ] `examples/capability-report-mock.py` — 能力上报 mock（RFC-007）
+- [ ] `examples/matching-engine-mock.py` — 撮合出清 mock（RFC-008，含多维权重排序与防超卖锁定）
+- [ ] 撮合闭环演示：真实 AEMO 电价对拍（复用 demo-30s 数据链路）
 
 ---
 

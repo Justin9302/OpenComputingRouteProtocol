@@ -26,6 +26,10 @@
 - **项目治理**：新增 `docs/PROTOCOL_IMPROVEMENTS.md`（协议改进待办清单，含 P0-P3 共 16 项）、`docs/DEVELOPMENT_PLAN_2026Q3-Q4.md`（四阶段发展计划）
 - **规范字段**：`spec/compute-intent.schema.json` 新增 `cost_optimization`、`currency`、`tenant_priority`（预留）、`network_affinity`（预留）、`data_governance`（预留，含 data_sensitivity / data_masking_required / data_residency）
 - **规范字段**：`spec/resource-table.schema.json` 扩充 `avail_compute`（新增 gpu_model / compute_capability / network_bandwidth_gbps / cpu_cores / ram_gb），新增 `network_zone`（预留）
+- **协议文档（市场协议补全）**：新增 RFC-007 供给侧能力上报、RFC-008 撮合与市场出清、RFC-009 净负荷预测单向推送、RFC-010 信任与信誉机制、RFC-011 结算与经济模型（全 Draft，P0=007/008，P1=009，P2=010/011），协议从"调度器"升级为"市场协议"
+- **现有 RFC 增补**：RFC-002 置信度分级（T0-T2 硬承诺 / T3-T10 软计划）；RFC-003 IT/OT 控制边界（信息流双向、控制流单向、永不直接控 PCS，IEC 62443 zone 映射）；RFC-005 资源表字段标准化 + 链路状态增量收敛；RFC-006 撮合后生命周期闭环（reserve→committed→结算→释放）
+- **项目治理**：新增 `docs/RFC-COMPLETION-PLAN.md`（补全索引与优先级）、`docs/RFC-AMENDMENTS-2026-10.md`（现有 RFC 增补说明）
+- **README**：架构叙事升级为市场协议（撮合闭环、安全边界、RFC 表扩至 011、行业标准对齐 OpenADR/OCP POM/IEC 62443）
 
 ### 变更
 
