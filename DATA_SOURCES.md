@@ -23,6 +23,7 @@
 | `examples/data/mock/aemo_nsw1_20260810.csv` | mock 输出，48 点 30 分钟模拟曲线 |
 | `examples/data/mock/aemo_nsw1_20260911.csv` | mock 输出，与上文件逐点相同（同 seed 同 PROFILE） |
 | `examples/data/mock/aemo_nsw1_20261006.csv` | mock 输出，同上 |
+| `examples/data/mock/capability_report.json` | `capability-report-mock.py` 输出（RFC-007 供给侧能力上报，含用户声明的 physical_profile），基于真实 AEMO 电价数据生成，非实测 |
 
 > ⚠️ 若将 mock 文件用于对外演示，请勿标注为"真实数据"；真实演示一律使用本文件第一节登记的 AEMO 数据。
 

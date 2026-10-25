@@ -97,13 +97,19 @@ python demo-30s.py
 cd examples
 python server-node-mock.py
 ```
+运行撮合闭环（供给侧能力上报 → intent → 撮合出清 → commit，真实 AEMO 电价演示）
+```
+cd examples
+python capability-report-mock.py          # RFC-007 能力上报
+python matching-engine-mock.py            # RFC-008/012 撮合出清闭环
+```
 提交一个MCP算力意图
 ```
 curl -X POST http://localhost:8080/v1/tasks \
   -H "Content-Type: application/json" \
   -d @examples/mcp-intent-example.json
 ```
-> 🔨 **撮合闭环 mock（RFC-007/008）开发中**：`capability-report-mock.py` + `matching-engine-mock.py` 将把能力上报与撮合出清跑成可演示实现（真实 AEMO 电价对拍）。
+> ✅ **撮合闭环 mock（RFC-007/008/012）已完成**：`capability-report-mock.py`（供给侧能力上报）+ `matching-engine-mock.py`（撮合出清闭环）已用真实 AEMO 电价跑通，见 [examples/](../tree/main/examples)。
 ### 🤝 参与贡献
 **我们遵循** "协议先行，代码渐进" 的原则。欢迎通过以下方式参与：
 1. **提出 RFC 提案** ：在 `docs/` 下新建 RFC 文档，提交 PR。

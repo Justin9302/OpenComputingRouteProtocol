@@ -60,9 +60,9 @@
 
 **影响范围**: 市场模型、Hub 撮合引擎、机房侧适配器、开放环境信任与结算
 
-**计划**: 2026-10 已完成草案（RFC-007~011 + RFC-AMENDMENTS-2026-10）；撮合闭环 mock（capability-report-mock / matching-engine-mock）为下一开发项
+**计划**: 2026-10 已完成草案（RFC-007~011 + RFC-AMENDMENTS-2026-10）；撮合闭环 mock 已完成
 
-**状态**: ✅ 草案已完成，见 [RFC-007-capability-advertisement.md](RFC-007-capability-advertisement.md) 至 [RFC-011-settlement.md](RFC-011-settlement.md) 及 [RFC-AMENDMENTS-2026-10.md](RFC-AMENDMENTS-2026-10.md)
+**状态**: ✅ 草案已完成，见 [RFC-007-capability-advertisement.md](RFC-007-capability-advertisement.md) 至 [RFC-011-settlement.md](RFC-011-settlement.md) 及 [RFC-AMENDMENTS-2026-10.md](RFC-AMENDMENTS-2026-10.md)；✅ 撮合闭环 mock 已完成（capability-report-mock.py + matching-engine-mock.py，含 RFC-012 联合出清，真实 AEMO 电价验证出清）
 
 ---
 
