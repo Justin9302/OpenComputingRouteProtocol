@@ -67,6 +67,41 @@ def facility_available_kw(prev_kw, pp, price):
     return max(min(grid_capable + asset, ramp_capable), 0.0)
 
 
+def find_best_window(price_rows, slots, pp, task_kw, duration_hours, budget):
+    """撮合出清核心（RFC-008 §4 + RFC-012）：候选过滤 → 物理约束 → 负电价死区 → 权重排序。
+    返回 dict{start, cost, shadow, candidate_count, window_len}；无达标窗口返回 None。"""
+    window_len = int(duration_hours * 12)   # 5 分钟粒度
+    mwh = task_kw * duration_hours / 1000.0
+    candidates = []
+    for i in range(len(slots) - window_len + 1):
+        w = slots[i:i + window_len]
+        ok, prev_kw, cost = True, 0.0, 0.0
+        for k in range(window_len):
+            s, price = w[k], price_rows[i + k]["price"]
+            if s["maintenance"] or s["avail_kw"] < task_kw:
+                ok = False; break
+            if price < cap.FACILITY["price_floor_aud_per_mwh"]:
+                ok = False; break                      # 机房不愿接
+            if facility_available_kw(prev_kw, pp, price) < task_kw:
+                ok = False; break                      # 物理约束不足（RFC-012 耦合约束）
+            cost += price / 1000.0 * (task_kw * 5 / 60.0)
+            prev_kw = task_kw
+        if not ok:
+            continue
+        if not all(price_rows[j]["price"] < ENTER_PRICE for j in range(i, i + window_len)):
+            continue                                   # 负电价死区：整个窗口都在死区下才切入
+        if cost > budget:
+            continue                                   # 预算约束
+        candidates.append((cost, i))
+    if not candidates:
+        return None
+    candidates.sort(key=lambda c: c[0])                 # min_cost
+    cost, start = candidates[0]
+    shadow = min(price_rows[j]["price"] for j in range(start, start + window_len))
+    return {"start": start, "cost": cost, "shadow": shadow,
+            "candidate_count": len(candidates), "window_len": window_len, "mwh": mwh}
+
+
 def run_closed_loop(save: bool = False):
     csv_path = cap.find_price_csv()
     if not csv_path:
@@ -103,52 +138,26 @@ def run_closed_loop(save: bool = False):
           f"预算 {t['sla_scheduling']['price_ceiling']} AUD | 目标 {t['sla_scheduling']['cost_optimization']}")
 
     # ③ 撮合出清：候选过滤 → 物理约束 → 负电价死区 → 权重排序
-    mwh = CLUSTER_POWER_KW * DURATION_HOURS / 1000.0
-    window_len = int(DURATION_HOURS * 12)   # 5 分钟粒度，1h=12 时隙
-    candidates = []
-    for i in range(len(slots) - window_len + 1):
-        w = slots[i:i + window_len]
-        ok = True
-        prev_kw = 0.0
-        cost = 0.0
-        for k in range(window_len):
-            s = w[k]
-            price = price_rows[i + k]["price"]
-            if s["maintenance"]:
-                ok = False; break
-            if s["avail_kw"] < CLUSTER_POWER_KW:
-                ok = False; break
-            if price < cap.FACILITY["price_floor_aud_per_mwh"]:
-                ok = False; break                      # 机房不愿接
-            cap_kw = facility_available_kw(prev_kw, pp, price)
-            if cap_kw < CLUSTER_POWER_KW:
-                ok = False; break                      # 物理约束不足（RFC-012 耦合约束）
-            cost += price / 1000.0 * (CLUSTER_POWER_KW * 5 / 60.0)
-            prev_kw = CLUSTER_POWER_KW
-        if not ok:
-            continue
-        if not all(price_rows[j]["price"] < ENTER_PRICE for j in range(i, i + window_len)):
-            continue                                   # 负电价死区：整个窗口都在死区下才切入
-        if cost > t["sla_scheduling"]["price_ceiling"]:
-            continue                                   # 预算约束
-        candidates.append((cost, i))
+    t = INTENT
+    budget = t["sla_scheduling"]["price_ceiling"]
+    r = find_best_window(price_rows, slots, pp, CLUSTER_POWER_KW, DURATION_HOURS, budget)
 
     # ④ 无达标窗口 → PENDING（等电来）
-    if not candidates:
+    if r is None:
         print("\n⚠️ 今日无满足物理约束 + 负电价死区 + 预算的执行窗口 → 任务 PENDING（'等电来'）")
         print("   建议：提高 price_ceiling / 放宽死区阈值 / 缩短任务时长")
         return
 
-    candidates.sort(key=lambda c: c[0])                 # min_cost
-    cost, start = candidates[0]
-    shadow = min(price_rows[j]["price"] for j in range(start, start + window_len))
+    start, cost, shadow = r["start"], r["cost"], r["shadow"]
+    window_len = r["window_len"]
+    mwh = r["mwh"]
 
     # ⑤ reserve → commit（RFC-008 §5 防超卖）
     reserved = slots[start:start + window_len]
     for s in reserved:
         s["committed_kw"] = CLUSTER_POWER_KW
     print(f"\n③ 撮合出清（RFC-008 + RFC-012 联合出清）:")
-    print(f"   候选窗口 {len(candidates)} 个 → 最优: 在 {price_rows[start]['time']}–"
+    print(f"   候选窗口 {r['candidate_count']} 个 → 最优: 在 {price_rows[start]['time']}–"
           f"{price_rows[start+window_len-1]['time']} 执行")
     print(f"   总电力成本 {cost:+.2f} AUD（预算 {t['sla_scheduling']['price_ceiling']} AUD 内）| "
           f"影子价格 {shadow} AUD/MWh")
