@@ -8,6 +8,12 @@
 
 ### 新增
 
+- **协议文档（算力×电力联合出清）**：新增 RFC-012《算力×电力联合出清与设施物理模型》——双子市场对敲（算力市场 × 电力市场 × 设施物理，公共时隙轴联立出清）、三层平面划分（路由分布式/结算中心化/算电协同）、设施物理模型声明 physical_profile（用户配置，经验公式初估 + 人在环校准）、防振荡（死区/迟滞/随机、爬坡限速、固定纪元重承诺）、IT/OT 边界、双向数据同步
+- **规范文件**：新增 `spec/physical-profile.schema.json`（设施物理模型声明，PUE/冷却τ/热储能/爬坡/供电包络，含来源标记 estimate/calibrated 与校准历史）；`spec/resource-table.schema.json` 资源表项新增 `physical_profile`
+- **参考实现**：新增 `examples/twin-market-clearing-mock.py`（联合出清 mock：耦合约束 + PUE/爬坡物理收紧 + 负电价死区，输出排程 + 影子价格，已在负电价窗口验证出清）
+- **协议增补**：RFC-008 新增 §11 联合出清扩展（指向 RFC-012）；RFC-004 新增 §7 physical_profile 与 §8 算电协同边界/双向数据同步；RFC-007 能力上报携带 physical_profile
+- **改进登记**：PROTOCOL_IMPROVEMENTS 新增 P0-4 改进项
+
 - **阶段二参考实现**：新增 Hub/Worker/调度器/AEMO 客户端/Manifest 验证器
   - `aemo_client.py`：AEMO 真实电价数据接入（公开 CSV + 模拟数据 fallback）
   - `scheduler.py`：SLA 策略组调度器（实时/交互/批处理/离线）+ 电价感知 + 预算约束 + 敏感度约束

@@ -55,6 +55,19 @@
   "committed": [
     { "task_id": "t-20261009-003", "slot_start": "2026-10-09T11:00:00+11:00", "kw": 250 }
   ],
+  "physical_profile": {
+    "declared_by": "config-engineer-a",
+    "source": "estimate",
+    "confidence": 0.6,
+    "pue_nominal": 1.18,
+    "pue_load_model": "inverse_overhead",
+    "cooling_tau_min": 10,
+    "thermal_storage_kwh": 700,
+    "ramp_limit_pct_per_min": 10,
+    "ramp_limit_thermal_kw_per_min": 80,
+    "power_envelope_kw": 1200,
+    "unit_power_kw": 4.5
+  },
   "version": 7
 }
 ```
@@ -72,6 +85,8 @@
 * `green_ratio`：真实数据无绿电比例字段时**留空不编造**（诚实约定，对齐 README 的 `n/a` 规则）。
 
 * `version`：单调递增，防止乱序覆盖（增量更新的基础）。
+
+* `physical_profile`：机房**用户声明的设施物理模型**（PUE、冷却 τ、热储能、爬坡上限、供电包络、单位算力功率）。协议只定义形式、不测算，参数值由运营方配置工程师按经验公式初估、运行后按实测修正（`source`: estimate/calibrated）。未知字段留空不编造。Schema 见 [spec/physical-profile.schema.json](../spec/physical-profile.schema.json)，语义见 [RFC-012 §4](RFC-012-twin-market-clearing-and-physical-model.md)。
 
 ## 4. 状态机（机房侧容量）
 

@@ -118,6 +118,22 @@
           "maximum": 1,
           "description": "本地储能剩余电量（0~1），可选"
         },
+        "physical_profile": {
+          "type": "object",
+          "description": "设施物理模型声明（用户配置，非 OCR 测算）。协议定形式、运营方定参数、实时状态走 OT 读取。参考 RFC-012 与 spec/physical-profile.schema.json。",
+          "properties": {
+            "declared_by": { "type": "string", "description": "声明人（配置工程师标识）" },
+            "source": { "type": "string", "enum": ["estimate", "calibrated"], "description": "estimate=经验公式初估；calibrated=已按实测校准" },
+            "confidence": { "type": "number", "minimum": 0, "maximum": 1, "description": "声明置信度（初估低、校准后高）" },
+            "pue_nominal": { "type": "number", "minimum": 1, "description": "额定 PUE（设计值）" },
+            "cooling_tau_min": { "type": "number", "minimum": 0, "description": "冷却热时间常数（分钟）" },
+            "thermal_storage_kwh": { "type": "number", "minimum": 0, "description": "热储能容量（kWh），机房的第二种储能" },
+            "ramp_limit_pct_per_min": { "type": "number", "minimum": 0, "description": "电爬坡上限（%额定功率/分钟）" },
+            "ramp_limit_thermal_kw_per_min": { "type": "number", "minimum": 0, "description": "热爬坡上限（kW/分钟），与电爬坡取小" },
+            "power_envelope_kw": { "type": "number", "minimum": 0, "description": "供电包络（kW），联合出清第一约束" },
+            "unit_power_kw": { "type": "number", "minimum": 0, "description": "单位算力功率（kW/卡），耦合约束用" }
+          }
+        },
         "latency_ms": {
           "type": "number",
           "minimum": 0,

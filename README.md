@@ -72,6 +72,7 @@ This is a Protocol for Distributed AI Computing Router.
 | [RFC-009]()     | **净负荷预测单向推送** | **Draft** | P1 |
 | [RFC-010]()     | **信任与信誉机制** | **Draft** | P2 |
 | [RFC-011]()     | **结算与经济模型** | **Draft** | P2 |
+| [RFC-012]()     | **算力×电力联合出清与设施物理模型** | **Draft** | P0 |
 > 🗺️ **项目路线图**：[ROADMAP.md](ROADMAP.md) — 查看项目推进计划与里程碑
 >
 > 💼 **商用与企业版**：[COMMERCIAL_STRATEGY.md](docs/COMMERCIAL_STRATEGY.md) — 开源版与企业版功能边界、商业合作模式、定价参考
