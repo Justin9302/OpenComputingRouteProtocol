@@ -103,6 +103,7 @@ cd examples
 python capability-report-mock.py          # RFC-007 能力上报
 python matching-engine-mock.py            # RFC-008/012 撮合出清闭环
 python matching-demo.py                   # 30 秒 Pitch：负电价执行省钱对比
+python plot-matching-window.py --save     # 生成价格曲线录屏素材 assets/matching-window-*.png
 ```
 提交一个MCP算力意图
 ```
