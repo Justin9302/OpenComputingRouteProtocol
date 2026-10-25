@@ -24,6 +24,15 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(SCRIPT_DIR, "data")
 OUT_JSON = os.path.join(DATA_DIR, "mock", "capability_report.json")
 
+# --------------------------------------------------------------------------- #
+# AEMO/NEM 市场价格界限（国家标准，AER / AEMC）
+# - 价格下限 Market Price Floor (MFP) = -$1,000/MWh（现行）
+# - 价格上限 Market Price Cap (MPC) = $20,300/MWh（2025-07-01 起，2024-25 为 $17,500）
+# 任何报价（含机房 price_floor、死区阈值）必须落在这个区间内。
+# --------------------------------------------------------------------------- #
+MARKET_PRICE_FLOOR = -1000.0
+MARKET_PRICE_CAP = 20300.0
+
 
 def find_price_csv() -> str:
     """优先用 data/ 下真实 AEMO 曲线（最新优先）；无则返回 None。"""
@@ -43,7 +52,8 @@ FACILITY = {
     "gpu_count": 64,                # 机柜可用 H100 卡数
     "avail_kw_base": 1000,          # 基础可用功率（kW）
     "hard_kw": 500,                 # 硬容量（确定性，服务 T0-T2）
-    "price_floor_aud_per_mwh": -40.0,  # 机房接受的最低结算电价（负电价倒贴接单，换绿电消纳）
+    # 机房"自身愿接受"的价格下限（RFC-007 业务选择，须在 [MFP, MPC] = [-1000, 20300] 内）
+    "price_floor_aud_per_mwh": -40.0,  # 负电价倒贴接单，换绿电消纳
     "maintenance_slots": {          # 维护时段（slot index 集合），按 5 分钟粒度
         "03:00": True, "03:05": True, "03:10": True,   # 03:00-03:15 维护
     },
@@ -122,12 +132,19 @@ def main():
         return
     report = build_capability_report(csv_path)
 
+    # 校验机房报价在市场界限内（国家标准 MFP=-1000, MPC=20300）
+    if not (MARKET_PRICE_FLOOR <= FACILITY["price_floor_aud_per_mwh"] <= MARKET_PRICE_CAP):
+        raise ValueError(f"机房 price_floor 超出 AEMO 市场价格界限 "
+                         f"[{MARKET_PRICE_FLOOR}, {MARKET_PRICE_CAP}] AUD/MWh")
+
     print("=== RFC-007 供给侧能力上报 mock ===")
+    print(f"市场标准（AER/AEMC）: 价格下限 MFP={MARKET_PRICE_FLOOR:.0f} AUD/MWh, "
+          f"价格上限 MPC={MARKET_PRICE_CAP:.0f} AUD/MWh")
     print(f"机房 {report['router_id']} | 电价曲线 {os.path.basename(csv_path)} | "
           f"{len(report['slots'])} 时段 @ {report['granularity_min']}min")
     print(f"GPU {FACILITY['gpu_type']} × {FACILITY['gpu_count']} | "
           f"avail {FACILITY['avail_kw_base']}kW / hard {FACILITY['hard_kw']}kW | "
-          f"价格下限 {FACILITY['price_floor_aud_per_mwh']} AUD/MWh")
+          f"机房愿受价格下限 {FACILITY['price_floor_aud_per_mwh']} AUD/MWh（在市场界限内）")
     print(f"物理模型: PUE_nom={report['physical_profile']['pue_nominal']} "
           f"τ={report['physical_profile']['cooling_tau_min']}min "
           f"包络={report['physical_profile']['power_envelope_kw']}kW "

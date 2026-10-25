@@ -77,6 +77,13 @@ def run_closed_loop(save: bool = False):
     pp = report["physical_profile"]
     slots = report["slots"]
 
+    # 校验报价/死区阈值在市场界限内（国家标准 MFP=-1000, MPC=20300）
+    for name, v in [("机房 price_floor", cap.FACILITY["price_floor_aud_per_mwh"]),
+                    ("死区 ENTER", ENTER_PRICE), ("死区 EXIT", EXIT_PRICE)]:
+        if not (cap.MARKET_PRICE_FLOOR <= v <= cap.MARKET_PRICE_CAP):
+            raise ValueError(f"{name}={v} 超出 AEMO 市场价格界限 "
+                             f"[{cap.MARKET_PRICE_FLOOR}, {cap.MARKET_PRICE_CAP}] AUD/MWh")
+
     print("=" * 66)
     print("  OCR 撮合闭环 mock：能力上报 → intent → 撮合出清 → commit")
     print("  （RFC-007 供给侧 × RFC-008 撮合 × RFC-012 联合出清，真实 AEMO 电价演示）")
@@ -84,8 +91,10 @@ def run_closed_loop(save: bool = False):
 
     # ① 供给侧能力上报
     print(f"\n① 能力上报（RFC-007）：机房 {report['router_id']} | {len(slots)} 时段 @ {report['granularity_min']}min")
+    print(f"   市场标准（AER/AEMC）: 价格下限 MFP={cap.MARKET_PRICE_FLOOR:.0f} AUD/MWh, "
+          f"价格上限 MPC={cap.MARKET_PRICE_CAP:.0f} AUD/MWh")
     print(f"   GPU {cap.FACILITY['gpu_type']}×{cap.FACILITY['gpu_count']} | 包络 {pp['power_envelope_kw']}kW | "
-          f"价格下限 {cap.FACILITY['price_floor_aud_per_mwh']} AUD/MWh | 物理模型({pp['source']})")
+          f"机房愿受价格下限 {cap.FACILITY['price_floor_aud_per_mwh']} AUD/MWh | 物理模型({pp['source']})")
 
     # ② 需求侧 intent
     t = INTENT

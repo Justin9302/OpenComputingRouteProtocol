@@ -17,6 +17,7 @@
 ### 变更
 
 - **撮合闭环 mock 完成（RFC-007/008/012）**：新增 `examples/capability-report-mock.py`（供给侧能力上报，含 physical_profile，对齐 NEM 5 分钟粒度）+ `examples/matching-engine-mock.py`（intent × capability 撮合出清闭环：候选过滤 → 物理耦合约束 → 负电价死区防振荡 → 权重排序 → reserve/commit 防超卖 → 结算钩子 + 影子价格），使用已下载的真实 AEMO 电价 `aemo_nsw1_20260124.csv` 演示，验证出清成功
+- **负电价对标 AEMO 国家标准**：mock 与 RFC-007 显式引用市场价格界限——价格下限 MFP = -$1,000/MWh、价格上限 MPC = $20,300/MWh（2025-07-01 起）；机房 price_floor 与死区阈值均在界限内校验，越界报价在接入层拒绝
 
 - **阶段二参考实现**：新增 Hub/Worker/调度器/AEMO 客户端/Manifest 验证器
   - `aemo_client.py`：AEMO 真实电价数据接入（公开 CSV + 模拟数据 fallback）
