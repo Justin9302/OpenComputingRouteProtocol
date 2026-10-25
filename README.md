@@ -76,6 +76,9 @@ This is a Protocol for Distributed AI Computing Router.
 > 🗺️ **项目路线图**：[ROADMAP.md](ROADMAP.md) — 查看项目推进计划与里程碑
 >
 > 💼 **商用与企业版**：[COMMERCIAL_STRATEGY.md](docs/COMMERCIAL_STRATEGY.md) — 开源版与企业版功能边界、商业合作模式、定价参考
+## 📝 行业研判（Blog）
+面向读者的行业文章（与协议 RFC 分开），见 [docs/blog/](docs/blog/)：
+- [3.8GW 一秒消失：算力负荷如何改写电网的游戏规则](docs/blog/2026-10-26-3.8gw-and-480mw-ocr-buffer.md) — PJM/爱尔兰 SEM 数据中心脱网事件 → 低惯性 → OCR 双向缓冲（2026-10-26）
 ## 🚀 快速开始
 运行Hub模拟器
 ```
